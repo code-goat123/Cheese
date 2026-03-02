@@ -1,0 +1,84 @@
+/* Cheese - fullscreen canvas and UI */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0a1628;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0a1628;
+  cursor: pointer;
+}
+
+#ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+#score {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+#title {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+}
+
+#instruction {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.5s ease;
+}
+
+#instruction.hidden {
+  opacity: 0;
+  pointer-events: none;
+}

@@ -1,0 +1,10 @@
+# Python / local
+.venv/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# Archives (optional; remove if you want to track zip)
+*.zip
