@@ -77,6 +77,7 @@
     this.lifetime = isGolden ? baseLifetime / 3 : baseLifetime;
     this.maxLifetime = this.lifetime;
     this.dead = false;
+    this.scored = false; // true when clicked (scored), false when timed out
   }
 
   LilyPad.prototype.update = function (dt) {
@@ -217,6 +218,20 @@
     this.instructionShownAt = null;
     this.scoreEl = document.getElementById('score');
     this.instructionEl = document.getElementById('instruction');
+    this.lost = false;
+  }
+
+  Game.prototype.tryAgain = function () {
+    this.lost = false;
+    this.score = 0;
+    this.lilyPads = [];
+    this.ripples = [];
+    this.floatingTexts = [];
+    this.gameTime = 0;
+    this.nextSpawnAt = 0.5 + Math.random() * 0.5;
+    this.instructionShownAt = 0;
+    if (this.scoreEl) this.scoreEl.textContent = 'Score: 0';
+    if (this.instructionEl) this.instructionEl.classList.remove('hidden');
   }
 
   Game.prototype.init = function () {
@@ -289,6 +304,10 @@
   };
 
   Game.prototype.onPointerDown = function (e) {
+    if (this.lost) {
+      this.tryAgain();
+      return;
+    }
     const rect = this.canvas.getBoundingClientRect();
     const scaleX = this.canvas.width / rect.width;
     const scaleY = this.canvas.height / rect.height;
@@ -300,6 +319,7 @@
       if (pad.dead) continue;
       if (pad.hitTest(px, py)) {
         pad.dead = true;
+        pad.scored = true;
         const points = pad.isGolden ? 3 : 1;
         this.score += points;
         this.scoreEl.textContent = 'Score: ' + this.score;
@@ -313,7 +333,7 @@
   Game.prototype.update = function (dt) {
     this.gameTime += dt;
 
-    if (this.gameTime >= this.nextSpawnAt) {
+    if (!this.lost && this.gameTime >= this.nextSpawnAt) {
       this.trySpawnLilyPad();
       this.scheduleNextSpawn();
     }
@@ -321,6 +341,16 @@
     this.lilyPads.forEach(function (p) { p.update(dt); });
     this.ripples.forEach(function (r) { r.update(dt); });
     this.floatingTexts.forEach(function (f) { f.update(dt); });
+
+    // Check for lose: any pad died without being clicked
+    if (!this.lost) {
+      for (let i = 0; i < this.lilyPads.length; i++) {
+        if (this.lilyPads[i].dead && !this.lilyPads[i].scored) {
+          this.lost = true;
+          break;
+        }
+      }
+    }
 
     this.lilyPads = this.lilyPads.filter(function (p) { return !p.dead; });
     this.ripples = this.ripples.filter(function (r) { return !r.dead; });
@@ -339,6 +369,26 @@
     this.lilyPads.forEach(function (p) { p.draw(this.ctx); }, this);
     this.ripples.forEach(function (r) { r.draw(this.ctx); }, this);
     this.floatingTexts.forEach(function (f) { f.draw(this.ctx); }, this);
+
+    if (this.lost) this.drawLostOverlay();
+  };
+
+  Game.prototype.drawLostOverlay = function () {
+    const ctx = this.ctx;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
+    ctx.font = 'bold 42px system-ui, sans-serif';
+    ctx.fillText('You lost!', w / 2, h / 2 - 28);
+    ctx.font = '20px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillText('Click to try again', w / 2, h / 2 + 20);
+    ctx.restore();
   };
 
   Game.prototype.loop = function (now) {
